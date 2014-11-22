@@ -4,40 +4,50 @@ class Mover {
   PVector location;
   PVector velocity;
   PVector acceleration;
+  
   // The Mover's maximum speed
   float topspeed;
+  
+  // gravity properties
+  float G;
+  float mass;
 
-  Mover() {
-    // Start in the center
-    location = new PVector(random(width),random(height));
-    velocity = new PVector(0,0);
+  Mover(float m, float x , float y) {
     topspeed = 5;
+    G = 0.4;
+    mass = m;
+    
+    location = new PVector(x, y);
+    velocity = new PVector(0,0);
+    acceleration = new PVector(0, 0);
   }
 
-  void update() {
-    
-    // Compute a vector that points from location to mouse
-    PVector mouse = new PVector(mouseX,mouseY);
-    acceleration = PVector.sub(mouse,location);
-    // Set magnitude of acceleration
-    //acceleration.setMag(0.2);
-    acceleration.normalize();
-    acceleration.mult(0.2);
-    
-    // Velocity changes according to acceleration
+  void update() {        
     velocity.add(acceleration);
-    // Limit the velocity by topspeed
-    velocity.limit(topspeed);
-    // Location changes by velocity
     location.add(velocity);
+    acceleration.mult(0);
+  }
+  
+  // F = A * M
+  // A = F / M
+  void applyForce(PVector force) {
+    PVector f = PVector.div(force , mass);
+    acceleration.add(f);   
+  }
+  
+  // F = G * m1 * m2 * r / r * r
+  PVector attract(Mover m) {
+    PVector force = PVector.sub(location, m.location);
+    float distance = force.mag();
+    distance = constrain(distance, 5.0, 25.0);
+    
+    force.normalize();
+    float strength = (G * mass * m.mass) / (distance * distance);
+    force.mult(strength);
+    return force;
   }
 
-  void display() {
-    stroke(0);
-    strokeWeight(2);
-    fill(127,200);
-    ellipse(location.x,location.y,48,48);
-  }
+
 
   void checkEdges() {
 
